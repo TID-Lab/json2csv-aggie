@@ -3,7 +3,7 @@ import csv
 import json
 
 # The JSON keys that you want to use
-CSV_HEADER_ROW = [u'_id', u'verified', u'status', u'storedAt', u'title', u'notes', u'locationName', u'assignedTo',
+CSV_HEADER_ROW = [u'$oid', u'verified', u'status', u'$date', u'title', u'notes', u'locationName', u'assignedTo',
                   u'__v', u'updatedAt']
 
 parser = argparse.ArgumentParser(description='JSON TO CSV for Aggie by Alex Stelea.')
@@ -14,6 +14,17 @@ args = parser.parse_args()
 # INPUT and OUTPUT FILES
 INPUT_FILE = args.input
 OUTPUT_FILE = args.output
+
+
+# Recursively find a key in a dictionary
+# from http://stackoverflow.com/questions/14962485/finding-a-key-recursively-in-a-dictionary
+def _finditem(obj, key):
+    if key in obj: return obj[key]
+    for k, v in obj.items():
+        if isinstance(v,dict):
+            item = _finditem(v, key)
+            if item is not None:
+                return item
 
 
 def parse_json_stream(stream):
@@ -37,7 +48,7 @@ save_file.writerow(CSV_HEADER_ROW)
 
 # Print every row in the file into csv format using the csv_header_row headers
 for line in json_dicts:
-    save_file.writerow([line.get(row) for row in CSV_HEADER_ROW])
+    save_file.writerow([_finditem(line, row) for row in CSV_HEADER_ROW])
 
 print "Converted " + str(len(json_dicts)) + " lines of JSON to " + OUTPUT_FILE
 
